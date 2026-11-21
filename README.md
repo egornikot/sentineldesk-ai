@@ -50,7 +50,14 @@ ticket (subject + body)
 - **Human review:** low confidence on any head, weak precedent (the best past match is below the similarity where its queue is right ≥85% of the time), a request for a refund or other commitment, or a draft that fails verification.
 - **Draft ready:** everything else. The draft can be sent with one click.
 
-**LLM.** Gemini 3.5 Flash-Lite by default. If it fails or takes longer than 12 s, Claude takes over (when `ANTHROPIC_API_KEY` is set). With no key, an offline mock drafts from the top precedent. Personal data is masked before any model sees the text.
+**Two reply models, switchable.** The reply is written by one of two LLMs, picked with the "Reply written by" switch on the dashboard (or `"llm": "gemini" | "claude"` in `POST /api/triage`):
+
+| Model | Speed (same ticket) | Role |
+|---|---|---|
+| Gemini 3.5 Flash-Lite | ~1 s | default: fast and cheap |
+| Claude Opus 5.5 | ~7 s | stronger writing |
+
+The chosen model drafts and the other is its automatic backup (on an error, or after 12 s for Gemini). Classification, routing, the safety gate and the citation check are identical for both: only the writer changes, and every draft is verified the same way. With no key, an offline mock drafts from the top precedent. Personal data is masked before any model sees the text.
 
 ## Quick start
 

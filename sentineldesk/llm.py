@@ -199,6 +199,27 @@ class FallbackLLM:
             return self.backup.complete_json(system, user, schema)
 
 
+def llm_options(llm: Any) -> dict[str, dict]:
+    """The reply-writing models a visitor can pick on the dashboard: {"gemini": {...}, "claude": {...}}."""
+    pair = [llm.primary, llm.backup] if isinstance(llm, FallbackLLM) else [llm]
+    label = {"gemini": "Gemini", "anthropic": "Claude"}
+    return {("claude" if p.name == "anthropic" else p.name): {"label": label.get(p.name, p.name), "model": p.model}
+            for p in pair if p.name != "mock"}
+
+
+def pick_llm(llm: Any, choice: Optional[str]) -> Any:
+    """Per-request choice of reply writer. The chosen model drafts; the other one is its backup.
+    Returns a fresh wrapper, so concurrent requests never share the 'active model' state."""
+    if not isinstance(llm, FallbackLLM):
+        return llm
+    first, second = llm.primary, llm.backup
+    if choice == "claude" and first.name != "anthropic":
+        first, second = second, first
+    elif choice == "gemini" and first.name != "gemini":
+        first, second = second, first
+    return FallbackLLM(first, second)
+
+
 def make_llm(settings: Any) -> Any:
     if settings.llm_mode == "gemini":
         try:

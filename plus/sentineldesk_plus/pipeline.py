@@ -13,7 +13,7 @@ from sentineldesk.classify import HEADS, Classifier
 from sentineldesk.config import Settings
 from sentineldesk.data import ticket_text
 from sentineldesk.generate import draft_reply
-from sentineldesk.llm import make_llm
+from sentineldesk.llm import make_llm, pick_llm
 from sentineldesk.pipeline import Pipeline, detect_language
 from sentineldesk.retrieve import Retriever
 
@@ -83,7 +83,7 @@ class PlusPipeline(Pipeline):
             c, q, _ = self.classify_text(subject, body)
             self.radar.observe(q, subject, body, lang, incident_like=True)
 
-    def run(self, subject: Optional[str], body: str) -> dict[str, Any]:
+    def run(self, subject: Optional[str], body: str, llm_choice: Optional[str] = None) -> dict[str, Any]:
         t: dict[str, float] = {}
         start = time.perf_counter()
 
@@ -125,7 +125,7 @@ class PlusPipeline(Pipeline):
         draft, verification = None, None
         if retrieval:
             t0 = time.perf_counter()
-            draft = draft_reply(self.llm, ticket, retrieval, decision)
+            draft = draft_reply(pick_llm(self.llm, llm_choice), ticket, retrieval, decision)
             lap("generate", t0)
             t0 = time.perf_counter()
             verification = verify.verify(draft, retrieval)

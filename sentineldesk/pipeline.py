@@ -14,7 +14,7 @@ from .classify import Classifier
 from .config import MODELS_DIR, Settings
 from .data import ticket_text
 from .generate import draft_reply
-from .llm import make_llm
+from .llm import llm_options, make_llm, pick_llm
 from .retrieve import Retriever
 
 GERMAN_HINTS = re.compile(r"(?i)\b(und|nicht|ist|ich|wir|sie|der|die|das|bitte|danke|können|funktioniert|mit|für|auf)\b")
@@ -71,9 +71,10 @@ class Pipeline:
 
     def status(self) -> dict:
         return {"classifier": self.classifier.engine, "retriever": "ready" if self.retriever.ready else "no index",
-                "llm": self.llm.name, "model": getattr(self.llm, "model", ""), "thresholds": self.settings.thresholds}
+                "llm": self.llm.name, "model": getattr(self.llm, "model", ""), "thresholds": self.settings.thresholds,
+                "llm_options": llm_options(self.llm)}
 
-    def run(self, subject: Optional[str], body: str) -> dict[str, Any]:
+    def run(self, subject: Optional[str], body: str, llm_choice: Optional[str] = None) -> dict[str, Any]:
         t: dict[str, float] = {}
         start = time.perf_counter()
 
@@ -101,7 +102,7 @@ class Pipeline:
         draft, verification = None, None
         if retrieval:
             t0 = time.perf_counter()
-            draft = draft_reply(self.llm, ticket, retrieval, decision)
+            draft = draft_reply(pick_llm(self.llm, llm_choice), ticket, retrieval, decision)
             lap("generate", t0)
             t0 = time.perf_counter()
             verification = verify.verify(draft, retrieval)

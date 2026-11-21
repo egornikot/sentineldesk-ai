@@ -63,6 +63,10 @@ td.snip { color: var(--muted); max-width: 420px; }
 .burst { margin: 12px 20px 0; padding: 10px 14px; border-radius: 10px; background: var(--danger-soft); border: 1px solid var(--g4); color: var(--ink); }
 .burst b.id { color: var(--g4); }
 .burst .members { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.seg { display: inline-flex; border: 1px solid var(--accent); border-radius: 8px; overflow: hidden; }
+.seg button { border-radius: 0; background: transparent; color: var(--accent); padding: 6px 12px; font-weight: 500; font-size: 13px; }
+.seg button.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.seg button:disabled { cursor: not-allowed; }
 .btn2 { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 5px 10px; font-weight: 500; font-size: 12px; }
 .twins { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
 .sent { white-space: pre-wrap; font-size: 12px; background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; padding: 8px 10px; margin-top: 6px; }
@@ -94,6 +98,9 @@ table.cmp td.best { font-weight: 700; color: var(--g1); }
       <input id="subject" placeholder="e.g. Hospital VPN not working">
       <label for="body">Message</label>
       <textarea id="body" placeholder="Paste any customer ticket, English or German…"></textarea>
+      <label>Reply written by</label>
+      <div class="seg" id="llmSwitch"></div>
+      <p class="muted" id="llmNote" style="font-size:12px;margin:6px 0 10px"></p>
       <div class="row">
         <button id="run">Triage ticket</button>
         <span class="muted" id="busy"></span>
@@ -130,6 +137,7 @@ table.cmp td.best { font-weight: 700; color: var(--g1); }
       <h2 id="draftTitle">Draft reply</h2>
       <div id="ack" class="hidden"></div>
       <div class="reply" id="reply"></div>
+      <p class="muted" id="draftModel" style="font-size:12px;margin:6px 0 0"></p>
       <h2 style="margin-top:14px">Evidence <span class="muted" style="text-transform:none;letter-spacing:0">(click a claim to see its source)</span></h2>
       <div id="claims"></div>
       <p class="err" id="problems"></p>
@@ -193,10 +201,36 @@ async function init() {
     ["Classifier: " + st.classifier, st.classifier === "trained"],
     ["Retrieval: " + st.retriever, st.retriever === "ready"],
   ].map(([t, ok]) => `<span class="chip ${ok ? "" : "off"}">${esc(t)}</span>`).join("");
+  renderLlmSwitch(st);
   examples = STATIC ? STATIC.examples : await getJSON(API + "/api/examples");
   $("example").innerHTML += examples.map((e, i) => `<option value="${i}">${esc(e.label || e.id)}</option>`).join("");
   const m = STATIC ? STATIC.metrics : await getJSON(API + "/api/metrics");
   if (m && Object.keys(m).length) renderMetrics(m);
+}
+
+// Two reply-writing models. Classification, routing, the safety gate and the citation check are identical
+// for both; only the model that writes the reply changes. The chosen one drafts, the other is its backup.
+let LLM_CHOICE = null;
+const LLM_INFO = {gemini: "fast and cheap, about 1 s per reply", claude: "stronger writing, a few seconds per reply"};
+function renderLlmSwitch(st) {
+  const opts = st.llm_options || (STATIC ? {gemini: {label: "Gemini", model: STATIC.llm || "recorded"}} : {});
+  const keys = ["gemini", "claude"].filter((k) => opts[k]);
+  if (!keys.length) {
+    $("llmSwitch").innerHTML = `<button class="on" disabled>Offline mock</button>`;
+    $("llmNote").textContent = "No LLM key configured: replies come from an offline template.";
+    return;
+  }
+  LLM_CHOICE = LLM_CHOICE && opts[LLM_CHOICE] ? LLM_CHOICE : keys[0];
+  $("llmSwitch").innerHTML = keys.map((k) =>
+    `<button data-k="${k}" class="${k === LLM_CHOICE ? "on" : ""}" ${STATIC ? "disabled" : ""}
+      title="${esc(opts[k].model)}">${esc(opts[k].label)} <span style="opacity:.75;font-weight:400">${esc(opts[k].model)}</span></button>`).join("");
+  $("llmSwitch").querySelectorAll("button").forEach((b) => b.onclick = () => { LLM_CHOICE = b.dataset.k; renderLlmSwitch(st); });
+  const other = keys.find((k) => k !== LLM_CHOICE);
+  $("llmNote").innerHTML = STATIC
+    ? "Recorded runs were drafted by Gemini; switching models needs the live server."
+    : `We use two models. <b>${esc(opts[LLM_CHOICE].label)}</b>: ${esc(LLM_INFO[LLM_CHOICE] || "")}.`
+      + (other ? ` If it fails or is too slow, ${esc(opts[other].label)} takes over automatically.` : "")
+      + " Classification, routing and the safety checks are the same for both.";
 }
 
 function renderMetrics(m) {
@@ -222,7 +256,7 @@ $("run").onclick = async () => {
       await new Promise((ok) => setTimeout(ok, 250));
     } else {
       r = await getJSON(API + "/api/triage", {method: "POST", headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({subject: $("subject").value, body})});
+        body: JSON.stringify({subject: $("subject").value, body, llm: LLM_CHOICE})});
     }
     if (r.error) throw new Error(r.error);
     render(r);
@@ -264,6 +298,7 @@ function render(r) {
 
   const dr = r.draft;
   $("ack").classList.add("hidden");
+  $("draftModel").textContent = "";
   if (!dr) { $("draftTitle").textContent = "Draft reply"; $("reply").textContent = "No draft: there is no historical evidence to ground one."; $("claims").innerHTML = ""; $("problems").textContent = ""; return; }
   if (dr.internal) {
     $("draftTitle").textContent = "Internal brief for the on-call engineer (not sent)";
@@ -273,6 +308,10 @@ function render(r) {
     $("draftTitle").textContent = d.route === "draft_ready" ? "Draft reply (ready to send)" : "Draft reply (needs human review)";
   }
   $("reply").textContent = dr.reply || "(empty)";
+  const [prov, mdl] = String(dr.model || "").split(":");
+  const used = prov === "anthropic" ? "claude" : prov;
+  $("draftModel").textContent = dr.model ? `Written by ${used === "claude" ? "Claude" : used === "gemini" ? "Gemini" : prov} (${mdl})`
+    + (LLM_CHOICE && used && used !== LLM_CHOICE && used !== "mock" ? ": the chosen model failed or was too slow, so the backup wrote it." : "") : "";
   $("claims").innerHTML = (dr.claims || []).map((cl) => `
     <span class="claim ${cl.verified ? "" : "bad"}" onclick="this.classList.toggle('open')">
       ${cl.verified ? "✅" : "⚠️"} ${esc(cl.sentence)} <b>[${esc(cl.ticket_id)}]</b>

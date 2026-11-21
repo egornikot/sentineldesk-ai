@@ -6,7 +6,7 @@ ThreadingHTTPServer, one static dashboard page, JSON routes.
     GET  /api/status       which engines are loaded (trained classifier? index? Claude or mock?)
     GET  /api/metrics      reports/metrics.json written by scripts/evaluate.py (or {})
     GET  /api/examples     demo tickets from evals/cases.jsonl
-    POST /api/triage       {"subject": str, "body": str} -> pipeline result (docs/PLAN.md contract)
+    POST /api/triage       {"subject": str, "body": str, "llm"?: "gemini"|"claude"} -> pipeline result (docs/PLAN.md contract)
 """
 from __future__ import annotations
 
@@ -128,7 +128,8 @@ def make_handler(pipeline: Any):
                 text = str(body.get("body") or "").strip()
                 if not text:
                     return self._send(400, {"error": "body is required"})
-                return self._send(200, pipeline.run(str(body.get("subject") or "")[:500], text[:10000]))
+                choice = body.get("llm") if body.get("llm") in ("gemini", "claude") else None
+                return self._send(200, pipeline.run(str(body.get("subject") or "")[:500], text[:10000], choice))
             except Exception as e:
                 traceback.print_exc()
                 return self._send(500, {"error": f"{type(e).__name__}: {e}"})
