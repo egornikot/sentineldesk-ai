@@ -74,7 +74,8 @@ table.cmp td.best { font-weight: 700; color: var(--g1); }
 </head>
 <body>
 <header>
-  <h1>🛡️ SentinelDesk<span style="color:var(--accent)">+</span> <span class="muted" style="font-weight:400">Combined Triage Console</span><span class="tag">twin vote · burst radar · PII view</span></h1>
+  <h1>🛡️ SentinelDesk<span style="color:var(--accent)">+</span> <span class="muted" style="font-weight:400">Combined Triage Console</span><span class="tag">twin vote · burst radar · PII view</span>
+    <a class="tag" href="https://egornikot.github.io/sentineldesk-ai/original/" title="the simpler first version, kept for comparison">original baseline ↗</a></h1>
   <div class="chips" id="chips"></div>
 </header>
 <div class="burst hidden" id="burst"></div>
@@ -187,7 +188,7 @@ async function loadStatus() {
   $("staticNote").classList.remove("hidden");
   $("staticNote").innerHTML = `<b>Live server is offline right now</b>, so this page replays real runs of the full pipeline
     (trained models + ${esc(STATIC.llm)}), recorded ${esc(STATIC.built_at)}. Unseen test tickets show their true labels.
-    Your own tickets work when the live server is on, or locally with <code>py run.py</code>
+    Your own tickets work when the live server is on, or locally with <code>py plus/run_plus.py</code>
     (see the <a href="https://github.com/egornikot/sentineldesk-ai">README</a>).`;
   return STATIC.status;
 }

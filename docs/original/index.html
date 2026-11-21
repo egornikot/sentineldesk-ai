@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SentinelDesk+ · Combined Triage Console</title>
+<title>SentinelDesk · Triage Console</title>
 <style>
 :root {
   --bg: #f4f6f8; --panel: #ffffff; --ink: #14202b; --muted: #5d6b78; --line: #e2e7ec;
@@ -60,29 +60,14 @@ td.snip { color: var(--muted); max-width: 420px; }
 .timings span { margin-right: 12px; font-variant-numeric: tabular-nums; }
 .hidden { display: none; }
 .err { color: var(--g4); }
-.burst { margin: 12px 20px 0; padding: 10px 14px; border-radius: 10px; background: var(--danger-soft); border: 1px solid var(--g4); color: var(--ink); }
-.burst b.id { color: var(--g4); }
-.burst .members { font-size: 12px; color: var(--muted); margin-top: 4px; }
-.btn2 { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 5px 10px; font-weight: 500; font-size: 12px; }
-.twins { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
-.sent { white-space: pre-wrap; font-size: 12px; background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; padding: 8px 10px; margin-top: 6px; }
-.sent mark { background: var(--warn-soft); color: var(--g2); border-radius: 3px; padding: 0 2px; }
-table.cmp td, table.cmp th { padding: 4px 6px; font-size: 12px; }
-table.cmp td.best { font-weight: 700; color: var(--g1); }
-.tag { font-size: 11px; padding: 1px 6px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); margin-left: 6px; vertical-align: middle; }
 </style>
 </head>
 <body>
 <header>
-  <h1>🛡️ SentinelDesk<span style="color:var(--accent)">+</span> <span class="muted" style="font-weight:400">Combined Triage Console</span><span class="tag">twin vote · burst radar · PII view</span></h1>
+  <h1>🛡️ SentinelDesk <span class="muted" style="font-weight:400">Triage Console · original baseline</span>
+    <a class="muted" style="font-size:13px;font-weight:400" href="https://egornikot.github.io/sentineldesk-ai/">→ main version (SentinelDesk+)</a></h1>
   <div class="chips" id="chips"></div>
 </header>
-<div class="burst hidden" id="burst"></div>
-<div class="row" style="margin:8px 20px 0" id="burstCtl">
-  <span class="muted" style="font-size:12px">Outage burst radar: ≥3 similar incident reports (EN/DE) within 2 h become one major incident.</span>
-  <button class="btn2" id="simBurst">Simulate outage burst</button>
-  <button class="btn2" id="resetBurst">Reset</button>
-</div>
 <main>
   <section>
     <div class="card hidden" id="staticNote" style="border-left:4px solid var(--g2, #6366f1)"></div>
@@ -101,7 +86,7 @@ table.cmp td.best { font-weight: 700; color: var(--g1); }
     </div>
     <div class="card" id="metricsCard">
       <h2>Holdout metrics (20% test split)</h2>
-      <div id="metrics" class="muted">Run <code>plus/evaluate_plus.py</code> to fill this in.</div>
+      <div id="metrics" class="muted">Run <code>scripts/evaluate.py</code> to fill this in.</div>
     </div>
   </section>
 
@@ -112,8 +97,6 @@ table.cmp td.best { font-weight: 700; color: var(--g1); }
       <ul class="reasons" id="reasons"></ul>
       <p class="muted timings" id="timings"></p>
       <p class="muted" id="pii"></p>
-      <details id="sentBox"><summary class="muted" style="cursor:pointer;font-size:12px">What left your network: exact text sent to the LLM</summary>
-        <div class="sent" id="sent"></div></details>
     </div>
     <div class="card">
       <h2>Classification</h2>
@@ -136,12 +119,6 @@ table.cmp td.best { font-weight: 700; color: var(--g1); }
     </div>
   </section>
 </main>
-<section style="padding:0 20px 20px">
-  <div class="card" id="cmpCard">
-    <h2>All versions on held-out test tickets: original vs combined vs teammate, standard vs honest split</h2>
-    <div id="cmp" class="muted">Run <code>plus/evaluate_plus.py</code> to fill this in.</div>
-  </div>
-</section>
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -249,15 +226,7 @@ function render(r) {
   const c = r.classification;
   $("cls").innerHTML = ["type", "queue", "priority"].map((h) => `
     <div class="metric"><div class="k">${h}</div><div class="v">${esc(c[h].label ?? "–")}</div>
-    <div class="k">${pct(c[h].confidence)} confidence</div><div class="bar"><i style="width:${(c[h].confidence || 0) * 100}%"></i></div>
-    ${c[h].twins ? `<div class="twins">model: ${esc(c[h].classifier.label)} (${pct(c[h].classifier.confidence)})<br>
-      twins: ${esc(c[h].twins.label)} (${pct(c[h].twins.share)} of ${c[h].twins.k} nearest)<br>blend ${Math.round((1 - c[h].alpha) * 100)}/${Math.round(c[h].alpha * 100)}</div>` : ""}</div>`).join("");
-  const sent = r.pii.sent_to_llm;
-  if (sent) {
-    const mark = (s) => esc(s).replace(/\[(EMAIL|PHONE|IP|IBAN|CARD|ACCOUNT|SSN|CREDENTIAL|API_KEY|[A-Z_]{2,20})\]/g, "<mark>[$1]</mark>");
-    $("sent").innerHTML = (sent.subject ? `<b>${mark(sent.subject)}</b>\n` : "") + mark(sent.body);
-  }
-  if (r.burst !== undefined) refreshBurst();
+    <div class="k">${pct(c[h].confidence)} confidence</div><div class="bar"><i style="width:${(c[h].confidence || 0) * 100}%"></i></div></div>`).join("");
   $("crit").textContent = `Critical-incident score ${c.critical_score.toFixed(2)} · engine: ${c.engine}`;
   const gt = r.ground_truth;
   if (gt) $("crit").innerHTML += `<br><b>True labels (unseen test ticket ${esc(gt.ticket_id)}):</b> ${["type", "queue", "priority"].map((h) =>
@@ -288,40 +257,7 @@ function render(r) {
   $("problems").textContent = v && v.problems.length ? "⚠ " + v.problems.join(" · ") : "";
 }
 
-async function refreshBurst() {
-  if (STATIC) { $("burstCtl").classList.add("hidden"); return; }
-  try {
-    const b = await getJSON(API + "/api/burst");
-    const inc = (b.active || []).slice(-1)[0];
-    if (!inc) { $("burst").classList.add("hidden"); return; }
-    $("burst").classList.remove("hidden");
-    $("burst").innerHTML = `🚨 <b>MAJOR INCIDENT</b> <b class="id">${esc(inc.incident_id)}</b> · ${inc.count} correlated reports ·
-      ${inc.languages.map((l) => l.toUpperCase()).join(" + ")} — new matching tickets are escalated to on-call automatically.
-      <div class="members">${inc.members.map((m) => `${esc(m.id)} [${esc(m.language)}] ${esc(m.subject)}`).join(" · ")}</div>`;
-  } catch (e) { /* radar unavailable */ }
-}
-$("simBurst").onclick = async () => { await getJSON(API + "/api/burst/simulate", {method: "POST"}); refreshBurst(); };
-$("resetBurst").onclick = async () => { await getJSON(API + "/api/burst/reset", {method: "POST"}); refreshBurst(); };
-
-async function loadCompare() {
-  if (STATIC) { if (STATIC.compare) renderCompare(STATIC.compare); return; }
-  try { const c = await getJSON(API + "/api/compare"); if (c && c.rows) renderCompare(c); } catch (e) {}
-}
-function renderCompare(c) {
-  const cols = c.columns;
-  const best = {};
-  for (const col of cols) {
-    const vals = c.rows.map((r) => r[col.key]).filter((v) => typeof v === "number");
-    if (vals.length) best[col.key] = col.lower ? Math.min(...vals) : Math.max(...vals);
-  }
-  const fmt = (v, col) => v == null ? "–" : col.pct ? (v * 100).toFixed(1) + "%" : v.toFixed(3);
-  $("cmp").innerHTML = `<table class="cmp"><thead><tr><th>Version</th>${cols.map((k) => `<th>${esc(k.label)}</th>`).join("")}</tr></thead><tbody>
-    ${c.rows.map((r) => `<tr><td>${esc(r.name)}${r.note ? `<br><span class="muted">${esc(r.note)}</span>` : ""}</td>${cols.map((k) =>
-      `<td class="${r[k.key] === best[k.key] ? "best" : ""}">${fmt(r[k.key], k)}</td>`).join("")}</tr>`).join("")}
-    </tbody></table><p class="muted" style="font-size:12px;margin:6px 0 0">${esc(c.footnote || "")}</p>`;
-}
-
-init().then(() => { refreshBurst(); loadCompare(); setInterval(refreshBurst, 8000); });
+init();
 </script>
 </body>
 </html>

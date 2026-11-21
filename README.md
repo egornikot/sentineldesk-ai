@@ -6,65 +6,51 @@ An AI incident triage copilot for customer support. For every ticket it:
 2. **Decides whether a human is needed**: page someone now, send to human review, or mark an AI draft as ready. Every decision lists its reasons.
 3. **Retrieves** the 5 most similar resolved tickets from the historical data, with similarity scores. Matching works across languages.
 4. **Drafts a reply** in English or German, matching the customer. Every instruction in the reply cites the past ticket it comes from, and the code checks each citation before the draft is shown.
+5. **Detects outage bursts**: 3 or more similar incident reports (EN or DE) within 2 hours become one major incident, and new matching tickets go straight to on-call.
 
 > **Core idea:** urgency and evidence are two separate decisions. A hospital VPN outage is paged to an engineer immediately, even when there is no known fix. A routine billing ticket can go to the right queue with high confidence while the AI declines to promise a refund that no past case supports.
 
-
-## Two versions
-
-| | Run | Live demo |
-|---|---|---|
-| **SentinelDesk** (original, this page) | `py run.py` → localhost:8000 | https://egornikot.github.io/sentineldesk-ai/ |
-| **SentinelDesk+** (combined: ours + teammate's Helios + akshita's branch) | `py plus/run_plus.py` → localhost:8001 | https://egornikot.github.io/sentineldesk-ai/plus/ |
-
-SentinelDesk+ adds a twin vote over the most similar training tickets, temperature calibration, an outage burst
-radar, a "what left your network" PII view, placeholder cleanup, and an honest paraphrase-grouped evaluation.
-See [plus/README.md](plus/README.md) and the side-by-side results in
-[plus/reports/COMPARE_RESULTS.md](plus/reports/COMPARE_RESULTS.md).
+**Live demo:** https://egornikot.github.io/sentineldesk-ai/ (type any English or German ticket while the live server is on; otherwise it replays recorded real runs).
 
 ## Results on the held-out test set (5,718 tickets never seen in training)
 
-| Metric | Result |
-|---|---|
-| Macro-F1: type / queue / priority | **0.859** / 0.571 / 0.587 |
-| High-priority incident recall (full gate) | **89.9%** (886 of 986), with 26.6% of other tickets paged |
-| â€¦using confident labels only | 51.4% recall: the separate critical detector is what closes the gap |
-| Calibration error (ECE, type) | 0.032: a confidence of 0.8 really means about 80% correct |
-| Routes | 37.5% page now Â· 53.4% human review Â· 9.0% draft ready |
-| Grounding (live Gemini, demo cases) | 100% of cited claims verified against the retrieved tickets |
-| Latency | classify + retrieve â‰ˆ 60 ms; end to end â‰ˆ 1.3 s with Gemini 3.5 Flash-Lite |
-| Demo and safety cases | 8 of 8 pass (`evals/run_evals.py --live`) |
+| Metric | SentinelDesk | Original baseline |
+|---|---|---|
+| Macro-F1: type | **0.929** | 0.859 |
+| Macro-F1: queue | **0.782** | 0.571 |
+| Macro-F1: priority | **0.818** | 0.587 |
+| High-priority incident recall | **91.5%** | 89.9% |
+| Other tickets paged | **16.5%** | 26.6% |
+| Calibration error (ECE, type) | **0.013** | 0.032 |
+| Routes: page now / human review / draft ready | 29.5% / 16.5% / **54.0%** | 37.5% / 53.4% / 9.0% |
+| Cross-lingual precedent in top 5 | 63.5% of queries | |
+| Grounding (live LLM, demo cases) | 100% of cited claims verified | 100% |
 
-The full report is in [reports/metrics.md](reports/metrics.md), with the calibration plot in `reports/calibration.png`. Per-ticket predictions are in `reports/predictions/sentineldesk_ml_test.csv`.
+**The data finding.** On the standard split, 42% of test tickets have a near-copy (cosine ≥ 0.95) in training, with the same priority 98% of the time. We therefore also report an **honest split** where rewrites of one scenario are grouped (0% near-copies). There: type F1 0.815, queue 0.367, priority 0.458, incident recall 96.8%. That is the number to expect on genuinely new tickets. Full side-by-side results, including a teammate's model on the same test tickets: [plus/reports/COMPARE_RESULTS.md](plus/reports/COMPARE_RESULTS.md).
 
-**No leakage.** Duplicate texts are grouped, then split 72/8/20 (train/dev/test) and stratified by type and priority. Models and thresholds are chosen on dev only. Only train tickets are indexed for retrieval. The exact assignment is in `splits/split_assignment.csv`, so other models can be scored on the same test set (see [docs/COMPARE.md](docs/COMPARE.md)).
+**No leakage.** Duplicate texts are grouped, then split 72/8/20 (train/dev/test) and stratified by type and priority. Models, blend weights and thresholds are chosen on dev only. Only train tickets are indexed for retrieval. The exact assignment is in `splits/split_assignment.csv` (see [docs/COMPARE.md](docs/COMPARE.md)).
 
 ## Pipeline
 
 ```
 ticket (subject + body)
-  â†’ preprocess   mask PII (email, phone, IP, IBAN, cards, accounts, keys), detect EN/DE
-  â†’ classify     type / queue / priority + confidence, critical-incident score    (~50 ms)
-  â†’ retrieve     top-5 similar resolved TRAIN tickets, multilingual embeddings
-  â†’ gate         PAGE NOW / HUMAN REVIEW / DRAFT READY, with reasons
-  â†’ generate     LLM reply as JSON claims, each with a ticket ID + verbatim excerpt
-  â†’ verify       each excerpt must fuzzy-match the cited ticket; flag refunds/amounts/SLAs/legal promises
-  â†’ dashboard    the full trace, per-stage latency, evidence panel
+  → preprocess   mask PII (email, phone, IP, IBAN, cards, accounts, keys), detect EN/DE
+  → classify     calibrated classifiers per head
+  → twin vote    the 5 most similar train tickets vote; blended with the classifier (weights tuned on dev)
+  → retrieve     top-5 similar resolved TRAIN tickets, multilingual embeddings
+  → burst radar  ≥3 similar incident reports within 2 h → one major incident MIR-…, escalated
+  → gate         PAGE NOW / HUMAN REVIEW / DRAFT READY, with reasons
+  → generate     LLM reply as JSON claims, each with a ticket ID + verbatim excerpt
+  → verify       each excerpt must fuzzy-match the cited ticket; flag refunds/amounts/SLAs/legal promises
+  → dashboard    full trace, per-stage latency, evidence, and the exact masked text sent to the LLM
 ```
 
-**Gate rules.**
-- **Page now:** a confident Incident + high label, a critical score over the tuned threshold, or severe impact words. Impact words are clinical, outage, security or data loss, and they must come with urgency or a second signal. Negations such as "not urgent" are ignored.
-- **Human review:** low confidence on any head, weak precedent (best match below the 10th percentile of dev similarity), a promise request, or a draft that fails verification.
-- **Draft ready:** everything else.
+**Gate rules** (plain code, never the LLM).
+- **Page now:** a confident Incident + high label, a critical score over the tuned threshold, severe impact words (clinical, outage, security, data loss, with urgency or a second signal), or membership of a detected outage burst.
+- **Human review:** low confidence on any head, weak precedent (the best past match is below the similarity where its queue is right ≥85% of the time), a request for a refund or other commitment, or a draft that fails verification.
+- **Draft ready:** everything else. The draft can be sent with one click.
 
-**Models.** Three candidates per head are compared on dev:
-- TF-IDF word and character n-grams with a calibrated linear SVM
-- multilingual MiniLM embeddings with logistic regression
-- both combined
-
-The winners are TF-IDF for type and priority, and combined for queue and the critical detector. All thresholds are tuned on dev: critical-incident recall â‰¥ 90%, and â‰¥ 75% accuracy above each confidence cut.
-
-**LLM.** Gemini 3.5 Flash-Lite is the default, with a fallback to Gemini 3.8 Flash. If both fail or take longer than 12 s, Claude takes over (when `ANTHROPIC_API_KEY` is set). With no key, an offline mock drafts from the top precedent. Page-now tickets get an internal brief plus a short customer acknowledgement, not a promised fix.
+**LLM.** Gemini 3.5 Flash-Lite by default. If it fails or takes longer than 12 s, Claude takes over (when `ANTHROPIC_API_KEY` is set). With no key, an offline mock drafts from the top precedent. Personal data is masked before any model sees the text.
 
 ## Quick start
 
@@ -74,21 +60,24 @@ py -m venv .venv
 py -m pip install -r requirements.txt
 copy .env.example .env        # add GEMINI_API_KEY and/or ANTHROPIC_API_KEY (or leave empty: mock mode)
 py scripts/prepare_data.py    # download, clean, dedupe, grouped split
-py scripts/train.py           # classifiers + thresholds + retrieval index (~10 min first time)
-py scripts/evaluate.py        # reports/metrics.json + .md, calibration plot, test predictions
-py run.py                     # console at http://localhost:8000 (or double-click start.bat)
+py scripts/train.py           # base classifiers + thresholds + retrieval index (~10 min first time)
+py plus/train_plus.py         # twin vote + temperature + thresholds on dev (~2 min)
+py plus/evaluate_plus.py      # test metrics -> plus/reports/
+py plus/run_plus.py           # console at http://localhost:8001
 ```
+
+Public demo from your own computer: double-click `go_public.bat`. It opens a free Cloudflare tunnel and points the GitHub Pages dashboard at it; keep the window open.
 
 Checks:
 
 ```powershell
-py -m unittest discover -s tests       # 14 offline tests
-py evals/run_evals.py --live           # 8 demo + safety cases with the real LLM
-py scripts/compare.py                  # compare/combine with another model's predictions
+py -m unittest discover -s tests       # offline tests
+py plus/test_plus.py                   # SentinelDesk+ tests
+py evals/run_evals.py --live           # demo + safety cases with the real LLM
 ```
 
-## Tuning knobs
+## Original baseline
 
-- `TARGET_RECALL` in `scripts/train.py` trades critical-incident recall against how many other tickets get paged.
-- `TARGET_ACCURACY` and `WEAK_EVIDENCE_PCT` control how many tickets reach draft ready (9% today; the conservative default).
-- `.env` sets the models, providers and port.
+The first version (calibrated classifiers + gate + RAG + verified drafts, without the twin vote, calibration and burst radar) is kept for comparison:
+`py run.py` → localhost:8000, public at https://egornikot.github.io/sentineldesk-ai/original/ (`go_public_original.bat`). Its report is in [reports/metrics.md](reports/metrics.md).
+See [plus/README.md](plus/README.md) for what each addition does and where the idea came from.

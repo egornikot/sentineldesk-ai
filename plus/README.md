@@ -1,7 +1,7 @@
-# SentinelDesk+ (combined version)
+# SentinelDesk+ (the main version)
 
-The second version of SentinelDesk. It is built **on top of** the original `sentineldesk/` package, which stays
-unchanged (still runs with `py run.py` on port 8000). The plus version runs with `py plus/run_plus.py` on port 8001.
+The main version of SentinelDesk. It is built **on top of** the original `sentineldesk/` package, which is kept
+as the baseline (`py run.py`, port 8000). This version runs with `py plus/run_plus.py` on port 8001.
 
 It keeps our core (calibrated classifiers, the three-route gate, quote-verified citations, PII masking before any
 model sees text) and adds the best ideas from the three team builds:
@@ -37,5 +37,5 @@ py plus/run_plus.py              # dashboard at http://localhost:8001
 Honest split (optional, ~15 min): `py plus/build_honest_split.py`, `py plus/train_honest.py`,
 `py plus/train_plus.py --models plus/honest/models --split plus/honest/processed --out plus/honest/models/plus.json`.
 
-Public link: `go_public_plus.bat` serves it at https://egornikot.github.io/sentineldesk-ai/plus/ from this computer;
+Public link: `go_public.bat` serves it at https://egornikot.github.io/sentineldesk-ai/ (the main page) from this computer;
 when it is off, the page replays recorded runs (`py plus/build_static_plus.py`).

@@ -1,11 +1,11 @@
 """Make the public GitHub Pages dashboard triage ANY ticket live, served from this computer.
 
-    py scripts/go_public.py            (or double-click go_public.bat)   original version
-    py scripts/go_public.py --plus     (or go_public_plus.bat)           combined version
+    py scripts/go_public.py              (or double-click go_public.bat)          main version (SentinelDesk+)
+    py scripts/go_public.py --original   (or go_public_original.bat)              original baseline
 
-1. starts the SentinelDesk server on localhost:8000 (if it isn't running already)
+1. starts the server on localhost:8001 (main) or :8000 (original), if it isn't running already
 2. opens a free Cloudflare quick tunnel to it (tools/cloudflared.exe, no account needed)
-3. writes the tunnel address to docs/demo/backend.json and pushes it, so
+3. writes the tunnel address to docs/demo/backend.json (original: docs/original/demo/) and pushes it, so
    https://egornikot.github.io/sentineldesk-ai/ connects to it within ~1 minute
 Keep this window open. Ctrl+C stops the tunnel; the page then falls back to the recorded examples.
 Visitors are rate-limited (RATE_LIMIT_PER_HOUR / GLOBAL_LIMIT_PER_HOUR in .env).
@@ -27,11 +27,11 @@ ROOT = Path(__file__).resolve().parent.parent
 CLOUDFLARED = next((p for p in (ROOT / "tools" / "cloudflared.exe", ROOT.parent / "tools" / "cloudflared.exe") if p.is_file()),
                    shutil.which("cloudflared"))
 GIT = shutil.which("git") or r"C:\Program Files\Git\cmd\git.exe"
-PLUS_MODE = "--plus" in sys.argv  # the combined version: plus/run_plus.py -> .../sentineldesk-ai/plus/
-BACKEND = ROOT / "docs" / ("plus/demo" if PLUS_MODE else "demo") / "backend.json"
-PORT = 8001 if PLUS_MODE else int(os.environ.get("PORT", "8000"))
-SERVER = ROOT / ("plus/run_plus.py" if PLUS_MODE else "run.py")
-PAGE = "https://egornikot.github.io/sentineldesk-ai/" + ("plus/" if PLUS_MODE else "")
+ORIGINAL = "--original" in sys.argv  # the original baseline: run.py -> .../sentineldesk-ai/original/
+BACKEND = ROOT / "docs" / ("original/demo" if ORIGINAL else "demo") / "backend.json"
+PORT = int(os.environ.get("PORT", "8000")) if ORIGINAL else 8001
+SERVER = ROOT / ("run.py" if ORIGINAL else "plus/run_plus.py")
+PAGE = "https://egornikot.github.io/sentineldesk-ai/" + ("original/" if ORIGINAL else "")
 
 
 def server_up() -> bool:
@@ -49,7 +49,7 @@ def publish(api: str) -> None:
     subprocess.run([GIT, "add", rel], cwd=ROOT, check=False)
     subprocess.run([GIT, "commit", "-q", "-m", msg, "--", rel], cwd=ROOT, check=False)
     ok = subprocess.run([GIT, "push", "-q"], cwd=ROOT).returncode == 0
-    print(("pushed " if ok else "PUSH FAILED (pull, then push docs/demo/backend.json by hand): ") + msg, flush=True)
+    print(("pushed " if ok else f"PUSH FAILED (pull, then push {rel} by hand): ") + msg, flush=True)
 
 
 def main() -> None:

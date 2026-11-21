@@ -1,4 +1,4 @@
-"""Static GitHub Pages build of SentinelDesk+ -> docs/plus/ (index.html + demo/results.json).
+"""Static GitHub Pages build of SentinelDesk+, the main page -> docs/ (index.html + demo/results.json).
 
     py plus/build_static_plus.py
 
@@ -23,7 +23,7 @@ from sentineldesk import data  # noqa: E402
 from sentineldesk.config import MODELS_DIR, Settings  # noqa: E402
 from sentineldesk_plus.pipeline import PlusPipeline  # noqa: E402
 
-OUT = ROOT / "docs" / "plus"
+OUT = ROOT / "docs"
 
 if __name__ == "__main__":
     cfg = PLUS / "models" / "plus.json"

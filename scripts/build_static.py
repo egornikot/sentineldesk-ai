@@ -1,4 +1,4 @@
-"""Build the static GitHub Pages demo into docs/ (index.html + demo/results.json).
+"""Build the static GitHub Pages demo of the original baseline into docs/original/ (index.html + demo/results.json).
 
     py scripts/build_static.py [--per-cell 3] [--mock]
 
@@ -23,7 +23,7 @@ from sentineldesk import data  # noqa: E402
 from sentineldesk.config import REPORTS_DIR, Settings  # noqa: E402
 from sentineldesk.pipeline import Pipeline  # noqa: E402
 
-OUT = ROOT / "docs"
+OUT = ROOT / "docs" / "original"
 FLAG = {"en": "🇬🇧", "de": "🇩🇪"}
 ROUTE_ICON = {"page_now": "🚨", "human_review": "👀", "draft_ready": "✅"}
 
