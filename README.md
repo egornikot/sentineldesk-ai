@@ -14,19 +14,19 @@ An AI incident triage copilot for customer support. For every ticket it:
 
 ## Results on the held-out test set (5,718 tickets never seen in training)
 
-| Metric | SentinelDesk | Original baseline |
-|---|---|---|
-| Macro-F1: type | **0.929** | 0.859 |
-| Macro-F1: queue | **0.782** | 0.571 |
-| Macro-F1: priority | **0.818** | 0.587 |
-| High-priority incident recall | **91.5%** | 89.9% |
-| Other tickets paged | **16.5%** | 26.6% |
-| Calibration error (ECE, type) | **0.013** | 0.032 |
-| Routes: page now / human review / draft ready | 29.5% / 16.5% / **54.0%** | 37.5% / 53.4% / 9.0% |
-| Cross-lingual precedent in top 5 | 63.5% of queries | |
-| Grounding (live LLM, demo cases) | 100% of cited claims verified | 100% |
+| Metric | Result |
+|---|---|
+| Macro-F1: type / queue / priority | **0.929** / **0.782** / **0.818** |
+| High-priority incident recall | **91.5%**, with 16.5% of other tickets paged |
+| Calibration error (ECE, type) | **0.013**: a confidence of 0.8 really means about 80% correct |
+| Routes: page now / human review / draft ready | 29.5% / 16.5% / **54.0%** |
+| Cross-lingual precedent in top 5 | 63.5% of queries |
+| Grounding (live LLM, demo cases) | 100% of cited claims verified against the retrieved tickets |
+| Latency | classify + retrieve ≈ 120 ms; end to end ≈ 1.3 s with Gemini 3.5 Flash-Lite |
 
-**The data finding.** On the standard split, 42% of test tickets have a near-copy (cosine ≥ 0.95) in training, with the same priority 98% of the time. We therefore also report an **honest split** where rewrites of one scenario are grouped (0% near-copies). There: type F1 0.815, queue 0.367, priority 0.458, incident recall 96.8%. That is the number to expect on genuinely new tickets. Full side-by-side results, including a teammate's model on the same test tickets: [plus/reports/COMPARE_RESULTS.md](plus/reports/COMPARE_RESULTS.md).
+**Ablation.** Without the twin vote and calibration (base classifiers only), macro-F1 drops to 0.859 / 0.571 / 0.587, 26.6% of other tickets get paged, and only 9% of tickets reach draft ready.
+
+**The data finding.** On the standard split, 42% of test tickets have a near-copy (cosine ≥ 0.95) in training, with the same priority 98% of the time. We therefore also report an **honest split** where rewrites of one scenario are grouped (0% near-copies). There: type F1 0.815, queue 0.367, priority 0.458, incident recall 96.8%. That is the number to expect on genuinely new tickets. Full table: [plus/reports/COMPARE_RESULTS.md](plus/reports/COMPARE_RESULTS.md).
 
 **No leakage.** Duplicate texts are grouped, then split 72/8/20 (train/dev/test) and stratified by type and priority. Models, blend weights and thresholds are chosen on dev only. Only train tickets are indexed for retrieval. The exact assignment is in `splits/split_assignment.csv` (see [docs/COMPARE.md](docs/COMPARE.md)).
 
@@ -63,7 +63,7 @@ py scripts/prepare_data.py    # download, clean, dedupe, grouped split
 py scripts/train.py           # base classifiers + thresholds + retrieval index (~10 min first time)
 py plus/train_plus.py         # twin vote + temperature + thresholds on dev (~2 min)
 py plus/evaluate_plus.py      # test metrics -> plus/reports/
-py plus/run_plus.py           # console at http://localhost:8001
+py run.py                     # console at http://localhost:8000 (or double-click start.bat)
 ```
 
 Public demo from your own computer: double-click `go_public.bat`. It opens a free Cloudflare tunnel and points the GitHub Pages dashboard at it; keep the window open.
@@ -72,12 +72,12 @@ Checks:
 
 ```powershell
 py -m unittest discover -s tests       # offline tests
-py plus/test_plus.py                   # SentinelDesk+ tests
+py plus/test_plus.py                   # twin vote, calibration, burst radar tests
 py evals/run_evals.py --live           # demo + safety cases with the real LLM
 ```
 
-## Original baseline
+## Code layout
 
-The first version (calibrated classifiers + gate + RAG + verified drafts, without the twin vote, calibration and burst radar) is kept for comparison:
-`py run.py` → localhost:8000, public at https://egornikot.github.io/sentineldesk-ai/original/ (`go_public_original.bat`). Its report is in [reports/metrics.md](reports/metrics.md).
-See [plus/README.md](plus/README.md) for what each addition does and where the idea came from.
+- `sentineldesk/`: base stages (PII masking, classifiers, retrieval, gate, LLM drafting, citation check, server).
+- `plus/`: the model layer on top (twin vote, calibration, burst radar, PII view, evaluation). See [plus/README.md](plus/README.md).
+- `scripts/`: data preparation, training, public demo (`go_public.py`). `evals/`: demo and safety cases.

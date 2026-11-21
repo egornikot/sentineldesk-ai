@@ -27,7 +27,7 @@ Thumbs.db
 # embedding cache
 *.npz
 
-# SentinelDesk+: keep the small tuned configs, ignore the large artifacts (patterns above)
+# plus/: keep the small tuned configs, ignore the large artifacts (patterns above)
 !plus/models/
 !plus/honest/models/
 plus/honest/train_log.txt

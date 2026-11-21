@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SentinelDesk+ · Combined Triage Console</title>
+<title>SentinelDesk · Triage Console</title>
 <style>
 :root {
   --bg: #f4f6f8; --panel: #ffffff; --ink: #14202b; --muted: #5d6b78; --line: #e2e7ec;
@@ -74,8 +74,7 @@ table.cmp td.best { font-weight: 700; color: var(--g1); }
 </head>
 <body>
 <header>
-  <h1>🛡️ SentinelDesk<span style="color:var(--accent)">+</span> <span class="muted" style="font-weight:400">Combined Triage Console</span><span class="tag">twin vote · burst radar · PII view</span>
-    <a class="tag" href="https://egornikot.github.io/sentineldesk-ai/original/" title="the simpler first version, kept for comparison">original baseline ↗</a></h1>
+  <h1>🛡️ SentinelDesk <span class="muted" style="font-weight:400">Triage Console</span></h1>
   <div class="chips" id="chips"></div>
 </header>
 <div class="burst hidden" id="burst"></div>
@@ -137,12 +136,6 @@ table.cmp td.best { font-weight: 700; color: var(--g1); }
     </div>
   </section>
 </main>
-<section style="padding:0 20px 20px">
-  <div class="card" id="cmpCard">
-    <h2>All versions on held-out test tickets: original vs combined vs teammate, standard vs honest split</h2>
-    <div id="cmp" class="muted">Run <code>plus/evaluate_plus.py</code> to fill this in.</div>
-  </div>
-</section>
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -188,7 +181,7 @@ async function loadStatus() {
   $("staticNote").classList.remove("hidden");
   $("staticNote").innerHTML = `<b>Live server is offline right now</b>, so this page replays real runs of the full pipeline
     (trained models + ${esc(STATIC.llm)}), recorded ${esc(STATIC.built_at)}. Unseen test tickets show their true labels.
-    Your own tickets work when the live server is on, or locally with <code>py plus/run_plus.py</code>
+    Your own tickets work when the live server is on, or locally with <code>py run.py</code>
     (see the <a href="https://github.com/egornikot/sentineldesk-ai">README</a>).`;
   return STATIC.status;
 }
@@ -304,25 +297,7 @@ async function refreshBurst() {
 $("simBurst").onclick = async () => { await getJSON(API + "/api/burst/simulate", {method: "POST"}); refreshBurst(); };
 $("resetBurst").onclick = async () => { await getJSON(API + "/api/burst/reset", {method: "POST"}); refreshBurst(); };
 
-async function loadCompare() {
-  if (STATIC) { if (STATIC.compare) renderCompare(STATIC.compare); return; }
-  try { const c = await getJSON(API + "/api/compare"); if (c && c.rows) renderCompare(c); } catch (e) {}
-}
-function renderCompare(c) {
-  const cols = c.columns;
-  const best = {};
-  for (const col of cols) {
-    const vals = c.rows.map((r) => r[col.key]).filter((v) => typeof v === "number");
-    if (vals.length) best[col.key] = col.lower ? Math.min(...vals) : Math.max(...vals);
-  }
-  const fmt = (v, col) => v == null ? "–" : col.pct ? (v * 100).toFixed(1) + "%" : v.toFixed(3);
-  $("cmp").innerHTML = `<table class="cmp"><thead><tr><th>Version</th>${cols.map((k) => `<th>${esc(k.label)}</th>`).join("")}</tr></thead><tbody>
-    ${c.rows.map((r) => `<tr><td>${esc(r.name)}${r.note ? `<br><span class="muted">${esc(r.note)}</span>` : ""}</td>${cols.map((k) =>
-      `<td class="${r[k.key] === best[k.key] ? "best" : ""}">${fmt(r[k.key], k)}</td>`).join("")}</tr>`).join("")}
-    </tbody></table><p class="muted" style="font-size:12px;margin:6px 0 0">${esc(c.footnote || "")}</p>`;
-}
-
-init().then(() => { refreshBurst(); loadCompare(); setInterval(refreshBurst, 8000); });
+init().then(() => { refreshBurst(); setInterval(refreshBurst, 8000); });
 </script>
 </body>
 </html>

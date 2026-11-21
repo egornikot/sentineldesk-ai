@@ -1,4 +1,4 @@
-"""SentinelDesk+ : the combined version.
+"""SentinelDesk model layer: twin vote, calibration, burst radar, PII view.
 
 Built ON TOP of the original `sentineldesk` package (which is left untouched) and adds the best ideas from
 the three team builds:

@@ -1,4 +1,4 @@
-"""Tune the SentinelDesk+ layer on DEV only (the base classifiers and index are reused, test is never read).
+"""Tune the twin-vote / calibration layer on DEV only (the base classifiers and index are reused, test is never read).
 
     py plus/train_plus.py                                  # standard split  -> plus/models/plus.json
     py plus/train_plus.py --models plus/honest/models --split plus/honest/processed --out plus/honest/models/plus.json

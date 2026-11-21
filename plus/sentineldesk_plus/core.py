@@ -1,4 +1,4 @@
-"""Twin vote + calibration + shared evaluation helpers for SentinelDesk+."""
+"""Twin vote + calibration + shared evaluation helpers."""
 from __future__ import annotations
 
 import json

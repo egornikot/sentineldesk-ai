@@ -36,18 +36,7 @@
   ],
   "rows": [
     {
-      "name": "Original (ours)",
-      "note": "standard split",
-      "f1_type": 0.8585,
-      "f1_queue": 0.5705,
-      "f1_priority": 0.5867,
-      "incident_recall": 0.8986,
-      "other_paged": 0.2663,
-      "ece_type": 0.0322,
-      "draft_ready": 0.0904
-    },
-    {
-      "name": "SentinelDesk+ (combined)",
+      "name": "SentinelDesk",
       "note": "standard split",
       "f1_type": 0.929,
       "f1_queue": 0.7822,
@@ -58,29 +47,18 @@
       "draft_ready": 0.5402
     },
     {
-      "name": "Teammate v3 (Helios)",
-      "note": "their own 5,718-ticket split (dups grouped)",
-      "f1_type": 0.8622,
-      "f1_queue": 0.5543,
-      "f1_priority": 0.5808,
-      "incident_recall": 0.9159,
-      "other_paged": 0.30879999999999996,
-      "ece_type": 0.0058,
-      "draft_ready": null
+      "name": "Ablation: classifiers only (no twin vote / calibration)",
+      "note": "standard split",
+      "f1_type": 0.8585,
+      "f1_queue": 0.5705,
+      "f1_priority": 0.5867,
+      "incident_recall": 0.8986,
+      "other_paged": 0.2663,
+      "ece_type": 0.0322,
+      "draft_ready": 0.0904
     },
     {
-      "name": "Original (ours)",
-      "note": "honest split: no rewrites shared with train",
-      "f1_type": 0.8208,
-      "f1_queue": 0.2993,
-      "f1_priority": 0.3889,
-      "incident_recall": 0.9594,
-      "other_paged": 0.4501,
-      "ece_type": 0.017,
-      "draft_ready": 0.0003
-    },
-    {
-      "name": "SentinelDesk+ (combined)",
+      "name": "SentinelDesk",
       "note": "honest split: no rewrites shared with train",
       "f1_type": 0.8151,
       "f1_queue": 0.3669,
@@ -89,9 +67,20 @@
       "other_paged": 0.4527,
       "ece_type": 0.0093,
       "draft_ready": 0.024
+    },
+    {
+      "name": "Ablation: classifiers only (no twin vote / calibration)",
+      "note": "honest split: no rewrites shared with train",
+      "f1_type": 0.8208,
+      "f1_queue": 0.2993,
+      "f1_priority": 0.3889,
+      "incident_recall": 0.9594,
+      "other_paged": 0.4501,
+      "ece_type": 0.017,
+      "draft_ready": 0.0003
     }
   ],
-  "footnote": "Standard split: 41% of test tickets have a near-copy (cos\u22650.95) in train; honest split: 0%. Bold = best in column.",
+  "footnote": "Standard split: 41% of test tickets have a near-copy (cos≥0.95) in train; honest split: 0%.",
   "standard": {
     "original": {
       "n": 5718,

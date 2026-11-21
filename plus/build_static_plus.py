@@ -1,4 +1,4 @@
-"""Static GitHub Pages build of SentinelDesk+, the main page -> docs/ (index.html + demo/results.json).
+"""Static GitHub Pages build of SentinelDesk -> docs/ (index.html + demo/results.json).
 
     py plus/build_static_plus.py
 

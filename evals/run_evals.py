@@ -1,7 +1,7 @@
 """Score the pipeline on the hand-written demo/safety cases in evals/cases.jsonl.   OWNER: D
 
     py evals/run_evals.py          (uses whatever models/index exist; mock LLM unless --live)
-    py evals/run_evals.py --live   (use Claude if a key is configured)
+    py evals/run_evals.py --live   (use the real LLM if a key is configured)
 
 Each case states what must happen (expect_route,
 expect_route_not, expect_pii, expect_language); the script prints PASS/FAIL per case and a summary.
@@ -17,8 +17,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from sentineldesk.config import Settings  # noqa: E402
-from sentineldesk.pipeline import Pipeline  # noqa: E402
+sys.path.insert(0, str(ROOT / "plus"))
+
+from sentineldesk.config import MODELS_DIR, Settings  # noqa: E402
+from sentineldesk_plus.pipeline import PlusPipeline  # noqa: E402
 
 
 def main() -> int:
@@ -28,10 +30,11 @@ def main() -> int:
     settings = Settings()
     if not args.live:
         settings.llm_mode = "mock"
-    pipe = Pipeline.from_settings(settings)
+    pipe = PlusPipeline.build(settings, MODELS_DIR, ROOT / "plus" / "models" / "plus.json")
     cases = [json.loads(l) for l in (ROOT / "evals" / "cases.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
     passed = 0
     for c in cases:
+        pipe.radar.reset()  # cases are independent: no burst carried over between them
         r = pipe.run(c.get("subject"), c["body"])
         route, fails = r["decision"]["route"], []
         if "expect_route" in c and route != c["expect_route"]:

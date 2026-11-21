@@ -1,4 +1,4 @@
-"""SentinelDesk+ server: the original server plus burst-radar and version-comparison routes."""
+"""SentinelDesk server: the base server plus burst-radar and results routes."""
 from __future__ import annotations
 
 import json

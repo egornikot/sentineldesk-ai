@@ -1,4 +1,4 @@
-"""SentinelDesk+ pipeline: the original stages plus twin vote, burst radar, placeholder cleanup and PII view."""
+"""SentinelDesk pipeline: the base stages plus twin vote, burst radar, placeholder cleanup and PII view."""
 from __future__ import annotations
 
 import json

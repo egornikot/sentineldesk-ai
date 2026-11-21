@@ -1,11 +1,10 @@
-"""Score every version on the held-out TEST tickets and write the comparison the dashboard shows.
+"""Score SentinelDesk on the held-out TEST tickets, with an ablation, and write plus/reports/.
 
     py plus/evaluate_plus.py
 
 Standard split (data/processed, models/) and, if trained, the paraphrase-grouped honest split
-(plus/honest/processed, plus/honest/models/). For each: the original model (classifier only, original
-thresholds) and SentinelDesk+ (twin vote + temperature, re-tuned thresholds). The teammate's Helios v3 numbers
-come from their published artifacts/holdout_metrics.json (their own 5,718-ticket split, duplicates grouped).
+(plus/honest/processed, plus/honest/models/). For each: SentinelDesk (twin vote + temperature, tuned thresholds)
+and an ablation with the base classifiers only.
 Writes plus/reports/compare.json, metrics_plus.json, COMPARE_RESULTS.md.
 """
 from __future__ import annotations
@@ -80,19 +79,6 @@ def latency(s: Settings, n: int = 40) -> dict:
             "classify_retrieve_p50": round(float(np.median(cls)), 1)}
 
 
-def helios_row() -> dict | None:
-    f = REPORTS / "helios_v3_holdout_metrics.json"
-    if not f.is_file():
-        return None
-    d = json.loads(f.read_text(encoding="utf-8"))
-    hp = d["high_priority_incident"]
-    return {"name": "Teammate v3 (Helios)", "note": "their own 5,718-ticket split (dups grouped)",
-            "f1_type": d["heads"]["type"]["macro_f1"], "f1_queue": d["heads"]["queue"]["macro_f1"],
-            "f1_priority": d["heads"]["priority"]["macro_f1"], "incident_recall": hp["recall"],
-            "other_paged": hp.get("other_tickets_paged_pct", 0) / 100, "ece_type": d["heads"]["type"].get("ece"),
-            "draft_ready": None}
-
-
 def row(name: str, note: str, m: dict) -> dict:
     return {"name": name, "note": note, **{k: m.get(k) for k in ("f1_type", "f1_queue", "f1_priority", "incident_recall",
                                                                  "other_paged", "ece_type")},
@@ -103,14 +89,11 @@ def main() -> None:
     s = Settings()
     res = {name: score_split(name, s) for name in SPLITS}
     std, hon = res["standard"], res["honest"]
-    rows = [row("Original (ours)", "standard split", std["original"]),
-            row("SentinelDesk+ (combined)", "standard split", std["plus"])]
-    h = helios_row()
-    if h:
-        rows.append(h)
+    rows = [row("SentinelDesk", "standard split", std["plus"]),
+            row("Ablation: classifiers only (no twin vote / calibration)", "standard split", std["original"])]
     if hon:
-        rows += [row("Original (ours)", "honest split: no rewrites shared with train", hon["original"]),
-                 row("SentinelDesk+ (combined)", "honest split: no rewrites shared with train", hon["plus"])]
+        rows += [row("SentinelDesk", "honest split: no rewrites shared with train", hon["plus"]),
+                 row("Ablation: classifiers only (no twin vote / calibration)", "honest split: no rewrites shared with train", hon["original"])]
     columns = [{"key": "f1_type", "label": "Type F1"}, {"key": "f1_queue", "label": "Queue F1"},
                {"key": "f1_priority", "label": "Priority F1"},
                {"key": "incident_recall", "label": "Incident recall", "pct": True},
@@ -132,13 +115,13 @@ def main() -> None:
         headline["honest_split_priority_f1"] = hon["plus"]["f1_priority"]
     core.save_json(REPORTS / "compare.json", compare)
     core.save_json(REPORTS / "metrics_plus.json", {"headline": headline, "latency_ms": lat, "standard": std, "honest": hon})
-    md = ["# SentinelDesk versions compared on held-out test tickets", "",
-          "| Version | Split | " + " | ".join(c["label"] for c in columns) + " |", "|---|---|" + "---|" * len(columns)]
+    md = ["# SentinelDesk results on held-out test tickets", "",
+          "| Model | Split | " + " | ".join(c["label"] for c in columns) + " |", "|---|---|" + "---|" * len(columns)]
     for r in rows:
         md.append(f"| {r['name']} | {r['note']} | " + " | ".join(
             "–" if r.get(c["key"]) is None else (f"{r[c['key']] * 100:.1f}%" if c.get("pct") else f"{r[c['key']]:.3f}")
             for c in columns) + " |")
-    md += ["", foot, "", f"SentinelDesk+ latency (mock LLM): p50 {lat['total_p50']} ms, classify+retrieve p50 "
+    md += ["", foot, "", f"Latency (mock LLM): p50 {lat['total_p50']} ms, classify+retrieve p50 "
            f"{lat['classify_retrieve_p50']} ms.", "", "Twin vote only (copy the nearest train tickets' labels), macro-F1:",
            f"- standard split: {std['twins_only']}"] + ([f"- honest split: {hon['twins_only']}"] if hon else [])
     (REPORTS / "COMPARE_RESULTS.md").write_text("\n".join(md) + "\n", encoding="utf-8")

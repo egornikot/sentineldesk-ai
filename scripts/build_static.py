@@ -1,4 +1,5 @@
-"""Build the static GitHub Pages demo of the original baseline into docs/original/ (index.html + demo/results.json).
+"""Record a static demo of the base pipeline (classifiers only, no twin vote) into reports/baseline_static/.
+The public page is built by plus/build_static_plus.py; this module also provides helpers it imports.
 
     py scripts/build_static.py [--per-cell 3] [--mock]
 
@@ -23,7 +24,7 @@ from sentineldesk import data  # noqa: E402
 from sentineldesk.config import REPORTS_DIR, Settings  # noqa: E402
 from sentineldesk.pipeline import Pipeline  # noqa: E402
 
-OUT = ROOT / "docs" / "original"
+OUT = ROOT / "reports" / "baseline_static"
 FLAG = {"en": "🇬🇧", "de": "🇩🇪"}
 ROUTE_ICON = {"page_now": "🚨", "human_review": "👀", "draft_ready": "✅"}
 

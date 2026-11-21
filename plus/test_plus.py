@@ -1,4 +1,4 @@
-"""Offline tests for the SentinelDesk+ additions.   py -m unittest plus/test_plus.py"""
+"""Offline tests for the twin vote, calibration, burst radar and PII view.   py -m unittest plus/test_plus.py"""
 from __future__ import annotations
 
 import sys
