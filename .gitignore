@@ -1,0 +1,34 @@
+# secrets
+.env
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# data and trained artifacts (too large / regenerable)
+data/
+models/
+*.parquet
+*.joblib
+*.npy
+*.db
+*.sqlite
+
+# editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# embedding cache
+*.npz
+
+# SentinelDesk+: keep the small tuned configs, ignore the large artifacts (patterns above)
+!plus/models/
+!plus/honest/models/
+plus/honest/train_log.txt
+tools/

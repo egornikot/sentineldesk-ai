@@ -1,0 +1,65 @@
+{
+  "k": 20,
+  "tau": 0.02,
+  "heads": {
+    "type": {
+      "alpha": 0.5,
+      "dev_score": 0.8318,
+      "T": 0.75
+    },
+    "queue": {
+      "alpha": 0.6,
+      "dev_score": 0.303,
+      "T": 1.15
+    },
+    "priority": {
+      "alpha": 0.4,
+      "dev_score": 0.4567,
+      "T": 1.0
+    },
+    "critical": {
+      "alpha": 0.4,
+      "dev_score": 0.6185,
+      "T": 1.0
+    }
+  },
+  "thresholds": {
+    "min_confidence_type": 0.3,
+    "min_confidence_queue": 0.54,
+    "min_confidence_priority": 0.63,
+    "min_confidence": 0.55,
+    "critical": 0.09,
+    "min_similarity": 0.811
+  },
+  "dev_classifier_only_f1": {
+    "type": 0.8078,
+    "queue": 0.2489,
+    "priority": 0.4133
+  },
+  "dev_metrics": {
+    "n": 2626,
+    "f1_type": 0.8318,
+    "acc_type": 0.8522,
+    "ece_type": 0.009,
+    "f1_type_null_subject": 0.8025,
+    "f1_queue": 0.303,
+    "acc_queue": 0.3953,
+    "ece_queue": 0.0295,
+    "f1_queue_null_subject": 0.3191,
+    "f1_priority": 0.4567,
+    "acc_priority": 0.4741,
+    "ece_priority": 0.0282,
+    "f1_priority_null_subject": 0.4122,
+    "incident_recall": 0.9289,
+    "other_paged": 0.4444,
+    "incident_precision": 0.2695,
+    "routes": {
+      "page_now": 0.5171,
+      "human_review": 0.4772,
+      "draft_ready": 0.0057
+    },
+    "cross_lingual_top5_pct": 61.73,
+    "same_queue_hit_at5_pct": 65.23,
+    "top1_similarity_median": 0.8643
+  }
+}

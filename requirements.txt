@@ -1,0 +1,13 @@
+pandas
+numpy
+scikit-learn
+joblib
+pyarrow
+huggingface_hub
+sentence-transformers
+rapidfuzz
+langdetect
+anthropic
+python-dotenv
+matplotlib
+google-genai

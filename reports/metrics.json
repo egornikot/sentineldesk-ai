@@ -1,0 +1,275 @@
+{
+  "headline": {
+    "macro_f1_type": 0.8585,
+    "macro_f1_queue": 0.5705,
+    "macro_f1_priority": 0.5867,
+    "high_priority_incident_recall": 0.8986,
+    "recall_labels_only": 0.5142,
+    "other_tickets_paged": 0.2663,
+    "ece_type": 0.0319,
+    "auto_draft_ready_share": 0.0904,
+    "latency_p50_ms (mock)": 116.8,
+    "latency_p95_ms (mock)": 190.2,
+    "grounding_rate (mock)": 1.0,
+    "test_tickets": 5718
+  },
+  "classification": {
+    "type": {
+      "macro_f1": 0.8585,
+      "accuracy": 0.8534,
+      "baseline_majority_macro_f1": 0.1431,
+      "ece": 0.0319,
+      "calibration": [
+        {
+          "bin": "0.4-0.5",
+          "n": 24,
+          "accuracy": 0.583,
+          "confidence": 0.473
+        },
+        {
+          "bin": "0.5-0.6",
+          "n": 622,
+          "accuracy": 0.51,
+          "confidence": 0.549
+        },
+        {
+          "bin": "0.6-0.7",
+          "n": 662,
+          "accuracy": 0.686,
+          "confidence": 0.65
+        },
+        {
+          "bin": "0.7-0.8",
+          "n": 729,
+          "accuracy": 0.775,
+          "confidence": 0.752
+        },
+        {
+          "bin": "0.8-0.9",
+          "n": 1019,
+          "accuracy": 0.89,
+          "confidence": 0.855
+        },
+        {
+          "bin": "0.9-1.0",
+          "n": 2662,
+          "accuracy": 0.985,
+          "confidence": 0.956
+        }
+      ],
+      "confident_share": 1.0,
+      "accuracy_when_confident": 0.8534
+    },
+    "queue": {
+      "macro_f1": 0.5705,
+      "accuracy": 0.5764,
+      "baseline_majority_macro_f1": 0.0447,
+      "ece": 0.1035,
+      "calibration": [
+        {
+          "bin": "0.1-0.2",
+          "n": 11,
+          "accuracy": 0.273,
+          "confidence": 0.195
+        },
+        {
+          "bin": "0.2-0.3",
+          "n": 579,
+          "accuracy": 0.275,
+          "confidence": 0.27
+        },
+        {
+          "bin": "0.3-0.4",
+          "n": 1609,
+          "accuracy": 0.426,
+          "confidence": 0.353
+        },
+        {
+          "bin": "0.4-0.5",
+          "n": 1444,
+          "accuracy": 0.555,
+          "confidence": 0.447
+        },
+        {
+          "bin": "0.5-0.6",
+          "n": 961,
+          "accuracy": 0.684,
+          "confidence": 0.546
+        },
+        {
+          "bin": "0.6-0.7",
+          "n": 570,
+          "accuracy": 0.821,
+          "confidence": 0.645
+        },
+        {
+          "bin": "0.7-0.8",
+          "n": 270,
+          "accuracy": 0.922,
+          "confidence": 0.743
+        },
+        {
+          "bin": "0.8-0.9",
+          "n": 184,
+          "accuracy": 1.0,
+          "confidence": 0.852
+        },
+        {
+          "bin": "0.9-1.0",
+          "n": 90,
+          "accuracy": 1.0,
+          "confidence": 0.923
+        }
+      ],
+      "confident_share": 0.4092,
+      "accuracy_when_confident": 0.7786
+    },
+    "priority": {
+      "macro_f1": 0.5867,
+      "accuracy": 0.6149,
+      "baseline_majority_macro_f1": 0.1914,
+      "ece": 0.0649,
+      "calibration": [
+        {
+          "bin": "0.3-0.4",
+          "n": 371,
+          "accuracy": 0.375,
+          "confidence": 0.376
+        },
+        {
+          "bin": "0.4-0.5",
+          "n": 1724,
+          "accuracy": 0.483,
+          "confidence": 0.455
+        },
+        {
+          "bin": "0.5-0.6",
+          "n": 1837,
+          "accuracy": 0.623,
+          "confidence": 0.546
+        },
+        {
+          "bin": "0.6-0.7",
+          "n": 1176,
+          "accuracy": 0.755,
+          "confidence": 0.646
+        },
+        {
+          "bin": "0.7-0.8",
+          "n": 511,
+          "accuracy": 0.824,
+          "confidence": 0.738
+        },
+        {
+          "bin": "0.8-0.9",
+          "n": 98,
+          "accuracy": 0.929,
+          "confidence": 0.83
+        },
+        {
+          "bin": "0.9-1.0",
+          "n": 1,
+          "accuracy": 1.0,
+          "confidence": 0.901
+        }
+      ],
+      "confident_share": 0.4236,
+      "accuracy_when_confident": 0.7597
+    }
+  },
+  "high_priority_recall": {
+    "labels_only": {
+      "recall": 0.5142,
+      "caught": 507,
+      "of": 986,
+      "other_flagged_rate": 0.048,
+      "other_flagged": 227,
+      "other_total": 4732
+    },
+    "labels_plus_detector": {
+      "recall": 0.8813,
+      "caught": 869,
+      "of": 986,
+      "other_flagged_rate": 0.2101,
+      "other_flagged": 994,
+      "other_total": 4732
+    },
+    "full_gate": {
+      "recall": 0.8986,
+      "caught": 886,
+      "of": 986,
+      "other_flagged_rate": 0.2663,
+      "other_flagged": 1260,
+      "other_total": 4732
+    }
+  },
+  "routes": {
+    "human_review": 0.5343,
+    "page_now": 0.3753,
+    "draft_ready": 0.0904
+  },
+  "latency_ms": {
+    "preprocess": {
+      "p50": 4.8,
+      "p95": 7.4
+    },
+    "classify": {
+      "p50": 83.7,
+      "p95": 123.4
+    },
+    "retrieve": {
+      "p50": 27.7,
+      "p95": 50.7
+    },
+    "gate": {
+      "p50": 0.3,
+      "p95": 0.5
+    },
+    "generate": {
+      "p50": 0.2,
+      "p95": 0.3
+    },
+    "verify": {
+      "p50": 0.1,
+      "p95": 0.2
+    },
+    "total": {
+      "p50": 116.8,
+      "p95": 190.2
+    }
+  },
+  "thresholds": {
+    "critical": 0.18,
+    "min_confidence": 0.55,
+    "min_similarity": 0.85,
+    "min_confidence_type": 0.3,
+    "min_confidence_queue": 0.48,
+    "min_confidence_priority": 0.56
+  },
+  "selection": {
+    "type": {
+      "chosen": "tfidf_svm",
+      "tfidf_svm": 0.8659,
+      "emb_lr": 0.8063,
+      "combo_svm": 0.8649
+    },
+    "queue": {
+      "chosen": "combo_svm",
+      "tfidf_svm": 0.5885,
+      "emb_lr": 0.2727,
+      "combo_svm": 0.5932
+    },
+    "priority": {
+      "chosen": "tfidf_svm",
+      "tfidf_svm": 0.5797,
+      "emb_lr": 0.4355,
+      "combo_svm": 0.5736
+    },
+    "critical": {
+      "chosen": "combo_svm",
+      "tfidf_svm": 0.6774,
+      "emb_lr": 0.5036,
+      "combo_svm": 0.6842
+    }
+  }
+}

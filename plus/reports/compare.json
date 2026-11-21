@@ -1,0 +1,361 @@
+{
+  "columns": [
+    {
+      "key": "f1_type",
+      "label": "Type F1"
+    },
+    {
+      "key": "f1_queue",
+      "label": "Queue F1"
+    },
+    {
+      "key": "f1_priority",
+      "label": "Priority F1"
+    },
+    {
+      "key": "incident_recall",
+      "label": "Incident recall",
+      "pct": true
+    },
+    {
+      "key": "other_paged",
+      "label": "Others paged",
+      "pct": true,
+      "lower": true
+    },
+    {
+      "key": "ece_type",
+      "label": "ECE type",
+      "lower": true
+    },
+    {
+      "key": "draft_ready",
+      "label": "Auto-draft",
+      "pct": true
+    }
+  ],
+  "rows": [
+    {
+      "name": "Original (ours)",
+      "note": "standard split",
+      "f1_type": 0.8585,
+      "f1_queue": 0.5705,
+      "f1_priority": 0.5867,
+      "incident_recall": 0.8986,
+      "other_paged": 0.2663,
+      "ece_type": 0.0322,
+      "draft_ready": 0.0904
+    },
+    {
+      "name": "SentinelDesk+ (combined)",
+      "note": "standard split",
+      "f1_type": 0.929,
+      "f1_queue": 0.7822,
+      "f1_priority": 0.8176,
+      "incident_recall": 0.9148,
+      "other_paged": 0.1653,
+      "ece_type": 0.0127,
+      "draft_ready": 0.5402
+    },
+    {
+      "name": "Teammate v3 (Helios)",
+      "note": "their own 5,718-ticket split (dups grouped)",
+      "f1_type": 0.8622,
+      "f1_queue": 0.5543,
+      "f1_priority": 0.5808,
+      "incident_recall": 0.9159,
+      "other_paged": 0.30879999999999996,
+      "ece_type": 0.0058,
+      "draft_ready": null
+    },
+    {
+      "name": "Original (ours)",
+      "note": "honest split: no rewrites shared with train",
+      "f1_type": 0.8208,
+      "f1_queue": 0.2993,
+      "f1_priority": 0.3889,
+      "incident_recall": 0.9594,
+      "other_paged": 0.4501,
+      "ece_type": 0.017,
+      "draft_ready": 0.0003
+    },
+    {
+      "name": "SentinelDesk+ (combined)",
+      "note": "honest split: no rewrites shared with train",
+      "f1_type": 0.8151,
+      "f1_queue": 0.3669,
+      "f1_priority": 0.4582,
+      "incident_recall": 0.9675,
+      "other_paged": 0.4527,
+      "ece_type": 0.0093,
+      "draft_ready": 0.024
+    }
+  ],
+  "footnote": "Standard split: 41% of test tickets have a near-copy (cos\u22650.95) in train; honest split: 0%. Bold = best in column.",
+  "standard": {
+    "original": {
+      "n": 5718,
+      "f1_type": 0.8585,
+      "acc_type": 0.8534,
+      "ece_type": 0.0322,
+      "f1_type_null_subject": 0.8972,
+      "f1_queue": 0.5705,
+      "acc_queue": 0.5764,
+      "ece_queue": 0.1035,
+      "f1_queue_null_subject": 0.695,
+      "f1_priority": 0.5867,
+      "acc_priority": 0.6149,
+      "ece_priority": 0.0649,
+      "f1_priority_null_subject": 0.7001,
+      "incident_recall": 0.8986,
+      "other_paged": 0.2663,
+      "incident_precision": 0.4129,
+      "routes": {
+        "page_now": 0.3753,
+        "human_review": 0.5343,
+        "draft_ready": 0.0904
+      },
+      "cross_lingual_top5_pct": 63.52,
+      "same_queue_hit_at5_pct": 89.73,
+      "top1_similarity_median": 0.9366
+    },
+    "plus": {
+      "n": 5718,
+      "f1_type": 0.929,
+      "acc_type": 0.9265,
+      "ece_type": 0.0127,
+      "f1_type_null_subject": 0.9631,
+      "f1_queue": 0.7822,
+      "acc_queue": 0.7947,
+      "ece_queue": 0.0701,
+      "f1_queue_null_subject": 0.8838,
+      "f1_priority": 0.8176,
+      "acc_priority": 0.8225,
+      "ece_priority": 0.0419,
+      "f1_priority_null_subject": 0.9048,
+      "incident_recall": 0.9148,
+      "other_paged": 0.1653,
+      "incident_precision": 0.5356,
+      "routes": {
+        "page_now": 0.2945,
+        "human_review": 0.1653,
+        "draft_ready": 0.5402
+      },
+      "cross_lingual_top5_pct": 63.52,
+      "same_queue_hit_at5_pct": 89.73,
+      "top1_similarity_median": 0.9366
+    },
+    "twins_only": {
+      "f1_type": 0.9197,
+      "f1_queue": 0.7556,
+      "f1_priority": 0.8098
+    },
+    "near_copy_share": 0.4091,
+    "cfg": {
+      "k": 5,
+      "tau": 0.01,
+      "heads": {
+        "type": {
+          "alpha": 0.5,
+          "dev_score": 0.937,
+          "T": 0.6
+        },
+        "queue": {
+          "alpha": 0.4,
+          "dev_score": 0.7818,
+          "T": 0.6
+        },
+        "priority": {
+          "alpha": 0.4,
+          "dev_score": 0.8123,
+          "T": 0.55
+        },
+        "critical": {
+          "alpha": 0.9,
+          "dev_score": 0.9116,
+          "T": 1.0
+        }
+      },
+      "thresholds": {
+        "min_confidence_type": 0.3,
+        "min_confidence_queue": 0.3,
+        "min_confidence_priority": 0.3,
+        "min_confidence": 0.55,
+        "critical": 0.16,
+        "min_similarity": 0.9
+      },
+      "dev_classifier_only_f1": {
+        "type": 0.8659,
+        "queue": 0.5932,
+        "priority": 0.5797
+      },
+      "dev_metrics": {
+        "n": 2287,
+        "f1_type": 0.937,
+        "acc_type": 0.9362,
+        "ece_type": 0.0152,
+        "f1_type_null_subject": 0.9774,
+        "f1_queue": 0.7818,
+        "acc_queue": 0.8002,
+        "ece_queue": 0.072,
+        "f1_queue_null_subject": 0.9209,
+        "f1_priority": 0.8123,
+        "acc_priority": 0.8185,
+        "ece_priority": 0.0426,
+        "f1_priority_null_subject": 0.9033,
+        "incident_recall": 0.9213,
+        "other_paged": 0.1564,
+        "incident_precision": 0.5508,
+        "routes": {
+          "page_now": 0.2882,
+          "human_review": 0.1653,
+          "draft_ready": 0.5466
+        },
+        "cross_lingual_top5_pct": 64.06,
+        "same_queue_hit_at5_pct": 91.04,
+        "top1_similarity_median": 0.9353
+      }
+    },
+    "original_thresholds": {
+      "critical": 0.18,
+      "min_confidence": 0.55,
+      "min_similarity": 0.85,
+      "min_confidence_type": 0.3,
+      "min_confidence_queue": 0.48,
+      "min_confidence_priority": 0.56
+    }
+  },
+  "honest": {
+    "original": {
+      "n": 5718,
+      "f1_type": 0.8208,
+      "acc_type": 0.8213,
+      "ece_type": 0.017,
+      "f1_type_null_subject": 0.8237,
+      "f1_queue": 0.2993,
+      "acc_queue": 0.368,
+      "ece_queue": 0.1213,
+      "f1_queue_null_subject": 0.3003,
+      "f1_priority": 0.3889,
+      "acc_priority": 0.4059,
+      "ece_priority": 0.0739,
+      "f1_priority_null_subject": 0.3701,
+      "incident_recall": 0.9594,
+      "other_paged": 0.4501,
+      "incident_precision": 0.3075,
+      "routes": {
+        "page_now": 0.538,
+        "human_review": 0.4617,
+        "draft_ready": 0.0003
+      },
+      "cross_lingual_top5_pct": 62.05,
+      "same_queue_hit_at5_pct": 66.26,
+      "top1_similarity_median": 0.862
+    },
+    "plus": {
+      "n": 5718,
+      "f1_type": 0.8151,
+      "acc_type": 0.8265,
+      "ece_type": 0.0093,
+      "f1_type_null_subject": 0.8281,
+      "f1_queue": 0.3669,
+      "acc_queue": 0.4203,
+      "ece_queue": 0.0415,
+      "f1_queue_null_subject": 0.3498,
+      "f1_priority": 0.4582,
+      "acc_priority": 0.4834,
+      "ece_priority": 0.0302,
+      "f1_priority_null_subject": 0.3906,
+      "incident_recall": 0.9675,
+      "other_paged": 0.4527,
+      "incident_precision": 0.3081,
+      "routes": {
+        "page_now": 0.5414,
+        "human_review": 0.4346,
+        "draft_ready": 0.024
+      },
+      "cross_lingual_top5_pct": 62.05,
+      "same_queue_hit_at5_pct": 66.26,
+      "top1_similarity_median": 0.862
+    },
+    "twins_only": {
+      "f1_type": 0.7654,
+      "f1_queue": 0.3502,
+      "f1_priority": 0.4577
+    },
+    "near_copy_share": 0.0,
+    "cfg": {
+      "k": 20,
+      "tau": 0.02,
+      "heads": {
+        "type": {
+          "alpha": 0.5,
+          "dev_score": 0.8318,
+          "T": 0.75
+        },
+        "queue": {
+          "alpha": 0.6,
+          "dev_score": 0.303,
+          "T": 1.15
+        },
+        "priority": {
+          "alpha": 0.4,
+          "dev_score": 0.4567,
+          "T": 1.0
+        },
+        "critical": {
+          "alpha": 0.4,
+          "dev_score": 0.6185,
+          "T": 1.0
+        }
+      },
+      "thresholds": {
+        "min_confidence_type": 0.3,
+        "min_confidence_queue": 0.54,
+        "min_confidence_priority": 0.63,
+        "min_confidence": 0.55,
+        "critical": 0.09,
+        "min_similarity": 0.811
+      },
+      "dev_classifier_only_f1": {
+        "type": 0.8078,
+        "queue": 0.2489,
+        "priority": 0.4133
+      },
+      "dev_metrics": {
+        "n": 2626,
+        "f1_type": 0.8318,
+        "acc_type": 0.8522,
+        "ece_type": 0.009,
+        "f1_type_null_subject": 0.8025,
+        "f1_queue": 0.303,
+        "acc_queue": 0.3953,
+        "ece_queue": 0.0295,
+        "f1_queue_null_subject": 0.3191,
+        "f1_priority": 0.4567,
+        "acc_priority": 0.4741,
+        "ece_priority": 0.0282,
+        "f1_priority_null_subject": 0.4122,
+        "incident_recall": 0.9289,
+        "other_paged": 0.4444,
+        "incident_precision": 0.2695,
+        "routes": {
+          "page_now": 0.5171,
+          "human_review": 0.4772,
+          "draft_ready": 0.0057
+        },
+        "cross_lingual_top5_pct": 61.73,
+        "same_queue_hit_at5_pct": 65.23,
+        "top1_similarity_median": 0.8643
+      }
+    },
+    "original_thresholds": {
+      "critical": 0.07,
+      "min_confidence": 0.55,
+      "min_similarity": 0.811,
+      "min_confidence_type": 0.3,
+      "min_confidence_queue": 0.68,
+      "min_confidence_priority": 0.7
+    }
+  }
+}

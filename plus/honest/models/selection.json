@@ -1,0 +1,26 @@
+{
+  "type": {
+    "chosen": "combo_svm",
+    "tfidf_svm": 0.8002,
+    "emb_lr": 0.7907,
+    "combo_svm": 0.8078
+  },
+  "queue": {
+    "chosen": "tfidf_svm",
+    "tfidf_svm": 0.2489,
+    "emb_lr": 0.1968,
+    "combo_svm": 0.244
+  },
+  "priority": {
+    "chosen": "emb_lr",
+    "tfidf_svm": 0.3852,
+    "emb_lr": 0.4133,
+    "combo_svm": 0.3958
+  },
+  "critical": {
+    "chosen": "combo_svm",
+    "tfidf_svm": 0.5322,
+    "emb_lr": 0.5045,
+    "combo_svm": 0.5587
+  }
+}
